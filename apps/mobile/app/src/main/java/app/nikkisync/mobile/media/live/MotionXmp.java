@@ -24,6 +24,7 @@ public final class MotionXmp {
     private static final String RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#";
     private static final String OPLUS="http://ns.oplus.com/photos/1.0/camera/";
     private static final String VIVO="http://ns.vivo.com/photos/1.0/camera/";
+    private static final String MICAMERA="http://ns.xiaomi.com/photos/1.0/camera/";
     private MotionXmp() {}
 
     public static byte[] create(LivePhotoProfile profile,long length,long pts,long padding) {
@@ -35,12 +36,13 @@ public final class MotionXmp {
         StringBuilder s=new StringBuilder(head).append(" xmlns:GCamera=\"").append(CAMERA)
             .append("\" GCamera:MotionPhoto=\"1\" GCamera:MotionPhotoVersion=\"1\" GCamera:MotionPhotoPresentationTimestampUs=\"").append(pts).append("\"");
         if(profile==LivePhotoProfile.XIAOMI) s.append(" GCamera:MicroVideo=\"1\" GCamera:MicroVideoVersion=\"1\" GCamera:MicroVideoOffset=\"")
-            .append(length).append("\" GCamera:MicroVideoPresentationTimestampUs=\"").append(pts).append("\"");
+            .append(length).append("\" GCamera:MicroVideoPresentationTimestampUs=\"").append(pts).append("\"")
+            .append(" xmlns:MiCamera=\"").append(MICAMERA).append("\" MiCamera:MotionPhoto=\"1\" MiCamera:MotionPhotoVersion=\"1\" MiCamera:MotionPhotoPresentationTimestampUs=\"").append(pts).append("\"");
         if(profile==LivePhotoProfile.OPLUS) s.append(" xmlns:OpCamera=\"").append(OPLUS)
             .append("\" OpCamera:MotionPhotoPrimaryPresentationTimestampUs=\"").append(pts)
             .append("\" OpCamera:MotionPhotoOwner=\"oplus\" OpCamera:OLivePhotoVersion=\"2\" OpCamera:MotionPhotoFeatureFlag=\"1\" OpCamera:VideoLength=\"").append(length).append("\"");
         if(profile==LivePhotoProfile.VIVO_SINGLE_XMP) s.append(" xmlns:VCamera=\"").append(VIVO)
-            .append("\" VCamera:VMotionPhotoVersion=\"1\" VCamera:VMotionPhotoSource=\"1\" VCamera:VMediaKitVersion=\"1.0.0.9\"");
+            .append("\" VCamera:MotionPhoto=\"1\" VCamera:VMotionPhotoVersion=\"1\" VCamera:VMotionPhotoSource=\"1\" VCamera:VMediaKitVersion=\"1.0.0.9\" VCamera:MotionPhotoPresentationTimestampUs=\"").append(pts).append("\"");
         if(profile==LivePhotoProfile.SAMSUNG_SEF) return s.append("/></rdf:RDF></x:xmpmeta>").toString().getBytes(StandardCharsets.UTF_8);
         s.append(" xmlns:Container=\"").append(CONTAINER).append("\" xmlns:Item=\"").append(ITEM).append("\"><Container:Directory><rdf:Seq>")
             .append("<rdf:li rdf:parseType=\"Resource\"><Container:Item Item:Mime=\"image/jpeg\" Item:Semantic=\"Primary\"");
@@ -81,8 +83,9 @@ public final class MotionXmp {
     private static boolean isMotionProperty(String ns,String key) {
         if(key==null)return false;
         return CAMERA.equals(ns)&&(key.startsWith("MotionPhoto")||key.startsWith("MicroVideo"))
+            || MICAMERA.equals(ns)&&(key.startsWith("MotionPhoto")||key.startsWith("MicroVideo"))
             || OPLUS.equals(ns)&&(key.startsWith("MotionPhoto")||key.startsWith("OLivePhoto")||key.equals("VideoLength"))
-            || VIVO.equals(ns)&&(key.startsWith("VMotionPhoto")||key.equals("VMediaKitVersion"));
+            || VIVO.equals(ns)&&(key.startsWith("VMotionPhoto")||key.startsWith("MotionPhoto")||key.equals("VMediaKitVersion"));
     }
     private static Document parse(byte[] bytes) throws IOException {
         if(bytes==null || bytes.length>65000)throw new IOException("XMP 缺失或过大");

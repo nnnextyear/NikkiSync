@@ -37,6 +37,7 @@ import { searchSuitLibrary, type SuitSearchAsset } from './SuitSearchIndex.js'
 import { WebSocketHub } from './WebSocketHub.js'
 import type {DeletionQueue,DeleteIntent} from '../organizer/DeletionQueue.js'
 import {AccountSyncSettings} from './AccountSyncSettings.js'
+import { WebGalleryRoutes } from '../web-gallery/WebGalleryRoutes.js'
 
 export interface LocalSyncServerConfig {
   accountSourceDirectories?:()=>readonly import('../scanner/types.js').ExtraScanRoot[]
@@ -154,6 +155,7 @@ export class LocalSyncServer {
   private readonly suitSearchResponseCache = new Map<string, SuitSearchResponse>()
   private readonly clothingSearchResponseCache = new Map<string, ClothingSearchResponse>()
   private readonly remoteRoutes: RemoteRoutes | undefined
+  private readonly webGallery: WebGalleryRoutes
   private readonly config: Required<Pick<LocalSyncServerConfig, 'name' | 'host' | 'port' | 'journalPollMs' | 'mdns' | 'maxJsonBodyBytes'>> & Pick<LocalSyncServerConfig, 'tls' | 'metadataThumbnailCache' | 'remoteBridge' | 'connectionHosts'>
 
   constructor(database: DatabaseManager, config: LocalSyncServerConfig = {}) {
@@ -165,6 +167,7 @@ export class LocalSyncServer {
     this.auth = new AuthService(database)
     this.pairing = new PairingService(database)
     this.remoteRoutes = config.remoteBridge ? new RemoteRoutes(config.remoteBridge) : undefined
+    this.webGallery = new WebGalleryRoutes(database, config.name ?? '大喵相机助手')
     this.config = {
       name: config.name ?? 'NikkiSync PC',
       host: config.host ?? '0.0.0.0',
@@ -232,6 +235,10 @@ export class LocalSyncServer {
   private async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
       const url = new URL(req.url ?? '/', 'http://nikkisync.local')
+      if (this.webGallery.canHandle(url.pathname)) {
+        await this.webGallery.handle(req, res, url)
+        return
+      }
       if(req.method==='POST'&&url.pathname==='/v1/organizer/sync'){
         const body=await readBody(req,128*1024)
         const device=this.auth.verifyRequest(req,body)
@@ -287,7 +294,7 @@ export class LocalSyncServer {
       serverId: this.serverId,
       name: this.config.name,
       libraryRevision: this.reads.currentRevision(),
-      capabilities: { websocketEvents: true, rangeRequests: true, metadataV1: true, motionAssets: true, suitSearch: true, clothingSearch: true, profileStats: true }
+      capabilities: { websocketEvents: true, rangeRequests: true, metadataV1: true, motionAssets: true, suitSearch: true, clothingSearch: true, profileStats: true, webGallery: true }
     }
     json(res, 200, { ...body, ...(this.config.connectionHosts ? { connectionHosts: this.config.connectionHosts().slice(0, 8) } : {}) })
   }

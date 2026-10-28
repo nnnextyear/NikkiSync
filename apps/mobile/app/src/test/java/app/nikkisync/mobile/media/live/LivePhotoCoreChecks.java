@@ -87,6 +87,18 @@ public final class LivePhotoCoreChecks {
                     eq("0",itemAttribute(xmp,"Primary","Padding"), "Oplus explicit zero primary padding");
                     eq("0",itemAttribute(xmp,"MotionPhoto","Padding"), "Oplus explicit zero motion padding");
                 }
+                if (profile == LivePhotoProfile.XIAOMI) {
+                    byte[] output = Files.readAllBytes(product.primary().toPath());
+                    byte[] xmp = JpegSegments.xmp(output);
+                    eq("1", attribute(xmp, "http://ns.xiaomi.com/photos/1.0/camera/", "MotionPhoto"), "Xiaomi HyperOS private MotionPhoto flag");
+                    eq("500000", attribute(xmp, "http://ns.xiaomi.com/photos/1.0/camera/", "MotionPhotoPresentationTimestampUs"), "Xiaomi HyperOS timestamp");
+                }
+                if (profile == LivePhotoProfile.VIVO_SINGLE_XMP) {
+                    byte[] output = Files.readAllBytes(product.primary().toPath());
+                    byte[] xmp = JpegSegments.xmp(output);
+                    eq("1", attribute(xmp, "http://ns.vivo.com/photos/1.0/camera/", "MotionPhoto"), "vivo single XMP MotionPhoto flag");
+                    eq("500000", attribute(xmp, "http://ns.vivo.com/photos/1.0/camera/", "MotionPhotoPresentationTimestampUs"), "vivo single XMP timestamp");
+                }
                 if (profile == LivePhotoProfile.VIVO_LEGACY_PAIR) {
                     eq(ID,VivoLegacyMetadata.readId(product.primary()),"paired image ID");
                     eq(ID,VivoLegacyMetadata.readId(product.companions().get(0)),"paired video ID");

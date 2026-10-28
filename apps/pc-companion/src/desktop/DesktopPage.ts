@@ -55,6 +55,16 @@ export function renderDesktopPage(status: DesktopStatus, options: { qrSvg?: stri
       <li><h3><span class="step-number">3</span>补充照片目录</h3><p>默认自动扫描游戏相册。照片没出现、相册搬过位置，或使用旋转吧大喵截图时，可添加实际保存照片的文件夹；先看目录说明，核对预览后再确认。</p></li>
     </ol>
   </section>`
+  const webCard = `<section class="connection-card glass" aria-labelledby="web-title">
+    <div class="channel-top"><span class="channel-icon">${icon('album')}</span><span class="channel-tag">iPhone / 浏览器免装</span></div>
+    <h2 id="web-title">网页版图库</h2><p class="channel-description">iPhone、iPad 或任意浏览器直接访问，免安装 App 即可快速浏览、查穿搭与保存原图。</p>
+    <div class="first-pairing">
+      <p style="font-size:12px;margin-bottom:10px;color:var(--secondary)">局域网免装直连地址：</p>
+      <code style="display:block;background:var(--tint);padding:9px 12px;border-radius:12px;font-size:12px;font-family:monospace;word-break:break-all;color:var(--accent-dark);margin-bottom:8px">https://${escapeHtml(status.host)}:${status.port}/web/</code>
+      <p style="font-size:11px;color:var(--secondary);line-height:1.5">在同一 Wi-Fi 下，用 iPhone Safari 或任意浏览器输入即可打开相册。<br>💡 首次访问若提示证书警告，点「高级/显示详细信息」并选择「继续前往」即可。</p>
+    </div>
+    <a href="https://${escapeHtml(status.host)}:${status.port}/web/" target="_blank" class="secondary channel-action" style="text-decoration:none">浏览器中打开 ${icon('arrow')}</a>
+  </section>`
   return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>大喵相机助手 · Momo Camera</title>
     ${token ? `<meta name="nikkisync-desktop-token" content="${token}">` : ''}<style>${css}${remoteToken ? remotePanelCss : ''}</style></head><body>
     <div class="ambient" aria-hidden="true"></div><div class="app-shell">
@@ -65,7 +75,7 @@ export function renderDesktopPage(status: DesktopStatus, options: { qrSvg?: stri
     <main class="workspace"><header class="page-header"><div><h1 id="desktop-title">暖暖相册</h1><p id="desktop-subtitle" class="page-subtitle">电脑里的风景与穿搭，在手机上慢慢欣赏。</p></div><span id="desktop-status" class="chip" data-state="ready" role="status"><span class="status-dot"></span><span id="desktop-status-text">同步服务运行中</span></span></header>
     <div data-page="connect"><section class="library-overview glass" aria-label="电脑相册状态"><span class="library-icon">${icon('album')}</span><div><p class="library-label">电脑相册</p><div class="library-number"><b id="desktop-assets">${status.assets}</b><span>份素材</span></div><p class="library-caption">新拍摄的照片会自动收录</p></div><div class="device-summary">${icon('phone')}<b id="desktop-devices">${status.pairedDevices}</b>台已配对设备</div></section>
       <div class="section-heading"><h2>连接到手机</h2><span class="network-hint">${icon('wifi')}电脑和手机需连接同一 Wi-Fi</span></div>
-      <div class="connection-grid">${firstUse}${android}${showRemote ? remotePanelHtml : ''}</div>
+      <div class="connection-grid">${firstUse}${android}${webCard}${showRemote ? remotePanelHtml : ''}</div>
       <p class="privacy-note">${icon('shield')}照片通过局域网传输。在线参数解析可在同步设置单独选择。</p>
     </div>
     <div data-page="settings" hidden><section class="settings-card glass" id="sync-connection-section"><h2>同步与连接</h2><div class="setting-row"><p>电脑局域网地址</p><span id="desktop-address" class="setting-value">${escapeHtml(status.host)}:${status.port}</span></div><div class="setting-row"><p>相册更新</p><span class="setting-value">自动收录新照片</span></div><div class="setting-row"><p>关闭窗口后</p><span class="setting-value">在托盘继续运行</span></div>${accountSyncHtml}</section><style>${accountSyncCss}</style>
